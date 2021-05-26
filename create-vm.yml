@@ -1,0 +1,20 @@
+---
+- name: Create a VM from a template
+  vars_files:
+    - vcenter_vars.yml
+  hosts: localhost
+  #connection: local
+  #gather_facts: no
+  tasks:
+  - name: Clone the template
+    vmware_guest:
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      validate_certs: False
+      name: new-1
+      template: yehuda
+      datacenter: "{{ datacenter }}"
+      folder: /vms
+      state: poweredon
+      wait_for_ip_address: no

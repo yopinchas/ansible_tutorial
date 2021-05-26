@@ -1,0 +1,59 @@
+---
+- name: Remove virtual machine
+  #gather_facts: no
+  vars_files:
+    - vcenter_vars.yml
+#  vars:
+#    ansible_python_interpreter: "/usr/bin/env python3"
+  hosts: localhost
+  tasks:
+    - set_fact:
+        vm_name: "new-1"
+        datacenter: "{{ datacenter  }}"
+
+#    - name: Gather all registered virtual machines
+#      vmware_vm_info:
+#        hostname: "{{ hostname }}"
+#        username: "{{ username }}"
+#        password: "{{ password }}"
+#        validate_certs: False
+#      delegate_to: localhost
+#      register: vminfo
+
+    - name: Get VM "{{ vm_name }}" state
+      vmware_guest_info:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: False
+        datacenter: "{{ datacenter }}"
+        folder: "/vms"
+        name: "{{ vm_name }}"
+      register: vm_facts
+
+    - name: Shutdown virtual machine
+      vmware_guest:
+        hostname: "{{ hostname  }}"
+        username: "{{ username  }}"
+        password: "{{ password  }}"
+        validate_certs: no
+        cluster: "Cluster"
+        name: "{{ vm_name }}"
+        state: poweredoff
+      when: vm_facts.instance.hw_power_status == "poweredOn"
+      #"hw_power_status": "poweredOn"
+      #vm_facts.instance.hw_product_uuid
+      delegate_to: localhost
+      register: facts
+
+    - name: Remove "{{ vm_name }}"
+      vmware_guest:
+        hostname: "{{ hostname  }}"
+        username: "{{ username  }}"
+        password: "{{ password  }}"
+        validate_certs: no
+        cluster: "{{ cluster  }}"
+        name: "{{ vm_name }}"
+        state: absent
+      delegate_to: localhost
+      register: facts
